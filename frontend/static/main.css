@@ -1,0 +1,117 @@
+body, input, button {
+  font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+}
+
+body {
+  padding: 20px 10px;
+}
+
+h2 {
+  color: #4CAF50;
+  font-size: 2.0rem;
+  font-weight: 300;
+  line-height: 110%;
+  margin: 16px 0 10px;
+}
+
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0 0 16px 0;
+}
+
+input[type="text"], input[type="number"] {
+  background-color: #fcfcfc;
+  padding: 15px 15px;
+  min-width: 200px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+input[type="text"]:focus, input[type="text"]:focus {
+  border-bottom-color: #4CAF50;
+}
+
+input[type="button"], input[type="submit"] {
+  background-color: #4CAF50; /* Green */
+  border: 1px solid #4CAF50;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  outline: none;
+  transition: all 0.2s ease-in;
+}
+
+input[type="button"]:hover, input[type="submit"]:hover {
+  background-color: #6CCF72;
+}
+
+div.form-group {
+  margin-bottom: 1rem;
+}
+
+div.form-group label {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+div.form-group input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+form {
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
+}
+
+table thead {
+  border-bottom: 1px solid #ccc;
+}
+
+table th, table td {
+  text-align: left;
+  padding: 5px 5px;
+  min-height: 30px;
+  vertical-align: middle;
+}
+
+table tr:hover {
+  background-color: #fbfbfb;
+}
+
+table th {
+  font-weight: bold;
+}
+
+header {
+}
+
+.tabs-container {
+
+}
+
+.tabs-container > div {
+  display: none;
+}
+
+.tabs-container > div.active {
+  display: block;
+}
+
+.ta-right {
+  text-align: right;
+}
+
+.hidden {
+  display: none;
+}
