@@ -1,8 +1,11 @@
+from oil.observer import ObservableEntity
 import uuid
 
 
-class Player:
+class Player(ObservableEntity):
     def __init__(self, name):
+        super().__init__()
+
         self.uuid = uuid.uuid4()
         self.name = name
         self.balance = 0
@@ -13,8 +16,11 @@ class Player:
     def estates_by_type(self, type=None):
         return (x for x in self.estates if isinstance(x, type))
 
+    @property
     def api_data(self):
         return dict(
             uuid=str(self.uuid),
-            name=self.name
+            name=self.name,
+            balance=self.balance,
+            oil=self.oil
         )

@@ -8,8 +8,11 @@
       <div class="tabs-panel" v-bind:class="{ active: view == 'games' }">
         <games v-bind:games="games"></games>
       </div>
-      <div class="tabs-panel" v-bind:class="{ active: view == 'waiting' }">
+      <div v-if="game && !game.started" class="tabs-panel" v-bind:class="{ active: view == 'waiting' }">
         <waiting v-bind:me="me" v-bind:game="game"></waiting>
+      </div>
+      <div v-if="game && game.started" class="tabs-panel" v-bind:class="{ active: view == 'game' }">
+        <game v-bind:me="me" v-bind:game="game" v-bind:estates="estates"></game>
       </div>
     </div>
   </div>
@@ -20,6 +23,7 @@
 import Name from './components/Name';
 import Games from './components/Games';
 import Waiting from './components/Waiting';
+import Game from './components/Game';
 
 export default {
   name: 'app',
@@ -29,6 +33,7 @@ export default {
       me: null,
       game: null,
       games: [],
+      estates: [],
     };
   },
   methods: {
@@ -41,11 +46,13 @@ export default {
         this.games = data;
         this.view = 'games';
         break;
+      case 'estates':
+        this.estates = data;
+        break;
       case 'game':
         this.game = data;
-        if (!data.started) {
-          this.view = 'waiting';
-        }
+        this.view = data.started ? 'game' : 'waiting';
+        break;
       }
     }
   },
@@ -56,6 +63,7 @@ export default {
     Name,
     Games,
     Waiting,
+    Game,
   },
 };
 </script>

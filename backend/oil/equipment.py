@@ -1,6 +1,13 @@
-class Equipment:
+from oil.observer import ObservableEntity
+
+
+class Equipment(ObservableEntity):
     def __init__(self, efficiency):
-        self.efficiency = efficiency
+        super().__init__(
+            lambda: dict(
+                efficiency=efficiency
+            )
+        )
 
 
 class Pump(Equipment):

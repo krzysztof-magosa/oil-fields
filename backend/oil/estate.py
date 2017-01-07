@@ -1,18 +1,21 @@
 import uuid
 from oil.equipment import Pump, Wagon, Drill
+from oil.observer import ObservableEntity
 
 
-class Estate:
+class Estate(ObservableEntity):
     def __init__(self, name, price):
+        super().__init__()
         self.uuid = uuid.uuid4()
-
         self.name = name
         self.price = price
         self.owner = None
 
+    @property
     def api_data(self):
         return dict(
             name=self.name,
+            type=self.__class__.__name__.lower(),
             price=self.price,
             owner=(self.owner.uuid if self.owner else None)
         )
@@ -38,10 +41,16 @@ class Oilfield(Estate):
         self.oil = 0
         self.equipments = []
 
+    @property
     def api_data(self):
         return dict(
-            **super().api_data(),
+            **super().api_data,
             current_depth=self.current_depth,
+            equipments_count=dict(
+                drill=len([x for x in self.equipments if isinstance(x, Drill)]),
+                pump=len([x for x in self.equipments if isinstance(x, Pump)]),
+                wagon=len([x for x in self.equipments if isinstance(x, Wagon)])
+            ),
             oil=self.oil
         )
 
@@ -105,6 +114,14 @@ class Factory(Estate):
         self.spec = spec
         self.equipment_price = 0
         self.stock = []
+
+    @property
+    def api_data(self):
+        return dict(
+            **super().api_data,
+            equipment_price=self.equipment_price,
+            stock=len(self.stock)
+        )
 
     def produce(self):
         if self.owner:

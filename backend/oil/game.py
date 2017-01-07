@@ -1,36 +1,51 @@
 from random import uniform, randint
 from oil.estate import Oilfield, PumpFactory, WagonFactory, DrillFactory
 from oil.player import Player
+from oil.observer import ObservableEntity
 import uuid
 
 
-class Game:
+class Game(ObservableEntity):
     def __init__(self, initial_balance):
+        super().__init__()
         self.uuid = uuid.uuid4()
         self.estates = []
         self.players = []
-        self.initial_balance = initial_balance
+        self.initial_balance = initial_balance,
         self.oil_prices = [uniform(0.1, 5.0) for _ in range(10000)]
         self.owner = None
-        self.turn = None # player playing at the moment
+        self.turn = None
         self.started = False
 
         self.generate()
 
+    @property
     def api_data(self):
         return dict(
             uuid=str(self.uuid),
-            estates=[x.api_data() for x in self.estates],
             initial_balance=self.initial_balance,
             started=self.started,
             owner=str(self.owner.uuid),
-            players=[x.api_data() for x in self.players]
+            turn=(str(self.turn.uuid) if self.turn else None),
+            players=[x.api_data for x in self.players]
         )
 
     def create_player(self, **args):
         player = Player(**args)
         player.game = self
         self.players.append(player)
+
+        # First player is owner
+        if not self.owner:
+            self.owner = player
+
+        # First player starts first
+        if not self.turn:
+            self.turn = player
+
+        # @@@
+        self.notify_observers(dict(type="update", property="players"))
+
         return player
 
     @property
