@@ -1,5 +1,12 @@
 <template>
   <div>
+    <modal v-if="showModal" @close="buy()">
+      <div slot="body">
+        <input type="number" v-model="price">
+      </div>
+      <h3 slot="header">Price of produced equipment</h3>
+    </modal>
+
     <h2>Factories</h2>
     <table>
       <thead>
@@ -13,7 +20,7 @@
           <td>{{ factory.name }}</td>
           <td>{{ factory.price }}</td>
           <td>
-            <input v-if="!factory.owner && me.balance > factory.price" type="button" value="Buy" @click="buy(index)">
+            <input v-if="!factory.owner && me.balance >= factory.price" type="button" value="Buy" @click="choose(index)">
           </td>
         </tr>
       </tbody>
@@ -23,11 +30,17 @@
 
 <script>
 /* eslint-disable */
+
+import Modal from '../Modal';
+
 export default {
   name: 'factories',
   props: ['estates', 'type', 'me'],
   data() {
     return {
+      showModal: false,
+      price: 1000,
+      index: null,
     };
   },
   computed: {
@@ -38,11 +51,22 @@ export default {
     }
   },
   methods: {
-    buy: function(index) {
-      this.$socket.send("buy_estate", { uuid: this.factories[index].uuid });
+    choose: function(index) {
+      this.index = index;
+      this.showModal = true;
+    },
+    buy: function() {
+      this.$socket.send("buy_factory", {
+        uuid: this.factories[this.index].uuid,
+        equipment_price: this.price,
+      });
+      this.showModal = false;
       this.$emit("set_view", "index");
     },
   },
+  components: {
+    Modal
+  }
 };
 
 </script>

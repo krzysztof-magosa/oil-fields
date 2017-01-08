@@ -5,6 +5,7 @@
 
     <h2>Estate shop</h2>
     <ul>
+      <li><a href="#" @click="$emit('set_view', 'oil-fields')">Oil fields</a></li>
       <li><a href="#" @click="$emit('set_view', 'factories-drill')">Drill factory</a></li>
       <li><a href="#" @click="$emit('set_view', 'factories-pump')">Pump factory</a></li>
       <li><a href="#" @click="$emit('set_view', 'factories-wagon')">Wagon factory</a></li>

@@ -20,6 +20,9 @@
       <div class="tabs-panel" v-bind:class="{ active: view == 'factories-wagon' }">
         <factories :me="me" :estates="estates" @set_view="set_view" type="wagonfactory"></factories>
       </div>
+      <div class="tabs-panel" v-bind:class="{ active: view == 'oil-fields' }">
+        <oil-fields :me="me" :estates="estates" @set_view="set_view"></oil-fields>
+      </div>
     </div>
   </div>
 </template>
@@ -29,6 +32,7 @@
 import Index from './game/Index';
 import MyEstate from './game/MyEstate';
 import Factories from './game/Factories';
+import OilFields from './game/OilFields';
 import WaitingForOther from './game/WaitingForOther';
 
 export default {
@@ -71,6 +75,7 @@ export default {
     Index,
     MyEstate,
     Factories,
+    OilFields,
     WaitingForOther,
   }
 };

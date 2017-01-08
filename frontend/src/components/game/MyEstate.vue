@@ -16,7 +16,7 @@
           <td>{{ oil_field.equipments_count.drill }}</td>
           <td>{{ oil_field.equipments_count.pump }}</td>
           <td>{{ oil_field.equipments_count.wagon }}</td>
-          <td>{{ oil_field.equipments_count.oil }}</td>
+          <td>{{ oil_field.oil }}</td>
         </tr>
       </tbody>
     </table>

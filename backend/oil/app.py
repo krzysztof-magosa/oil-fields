@@ -63,8 +63,10 @@ class Session(Observer):
             await self.start_game(data)
         elif action == "next_player":
             self.game.next_player()
-        elif action == "buy_estate":
-            self.buy_estate(data)
+        elif action == "buy_oilfield":
+            self.buy_oilfield(data)
+        elif action == "buy_factory":
+            self.buy_factory(data)
 
         if self.group:
             self.group.commit()
@@ -92,13 +94,18 @@ class Session(Observer):
 
         self.player.game.start()
 
-    def buy_estate(self, data):
-        self.player.buy(
-            estate = [x for x in self.game.estates if str(x.uuid) == data["uuid"]][0]
-        )
+    def buy_oilfield(self, data):
+        estate = [x for x in self.game.estates if str(x.uuid) == data["uuid"]][0]
+        self.player.buy(estate)
 
         self.game.next_player()
 
+    def buy_factory(self, data):
+        estate = [x for x in self.game.estates if str(x.uuid) == data["uuid"]][0]
+        estate.equipment_price = data["equipment_price"]
+        self.player.buy(estate)
+
+        self.game.next_player()
 
     @property
     def game(self):
