@@ -135,17 +135,11 @@ class Factory(Estate):
             oilfield.equipments.append(item)
             oilfield.owner.balance -= self.equipment_price
 
-        self.observable_group.notify(
-            self,
-            dict(action="update", property="stock")
-        )
+        self.notify_observers(dict(action="update", property="stock"))
 
     def store(self, equipment):
         self.stock.append(equipment)
-        self.observable_group.notify(
-            self,
-            dict(action="update", property="stock")
-        )
+        self.notify_observers(dict(action="update", property="stock"))
 
 
 class PumpFactory(Factory):

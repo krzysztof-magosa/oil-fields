@@ -1,7 +1,7 @@
 from oil.game import Game
 from oil.player import Player
 from oil.estate import Estate
-from oil.observer import Observer, observe_elements
+from oil.observer import Observer, observe_elements, begin_transaction, commit_transaction, by_observable
 import websockets
 import asyncio
 import json
@@ -98,30 +98,31 @@ class Session(Observer):
     @player.setter
     def player(self, player):
         self._player = player
+
+        begin_transaction()
         self.observe(self.player.game)
 
         observe_elements(
             observer=self,
-            group_name="estates",
             elements=self.game.estates
         )
         observe_elements(
             observer=self,
-            group_name="players",
             elements=self.game.players
         )
+        commit_transaction()
 
-    def notify(self, group, events):
-        if group.name == "players":
+    def notify(self, messages):
+        if any(isinstance(x[0], Player) for x in messages):
             self.send("players", self.game.players)
             self.send("me", self.player)
-        elif group.name == "estates":
+
+        if any(isinstance(x[0], Estate) for x in messages):
             self.send("estates", self.game.estates)
-        else:
-            for observable, event in events:
-                if isinstance(observable, Game):
-                    # self.send("players", self.player.game.players)
-                    self.send("game", self.player.game)
+
+        # There is one game, so no point in checking instance.
+        if any(isinstance(x[0], Game) for x in messages):
+            self.send("game", self.player.game)
 
     def api_dump(self, data):
         if isinstance(data, list):

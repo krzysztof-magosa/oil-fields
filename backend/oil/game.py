@@ -1,7 +1,7 @@
 from random import uniform, randint
 from oil.estate import Oilfield, PumpFactory, WagonFactory, DrillFactory
 from oil.player import Player
-from oil.observer import ObservableEntity
+from oil.observer import ObservableEntity, begin_transaction, commit_transaction
 from itertools import cycle
 import uuid
 
@@ -13,7 +13,7 @@ class Game(ObservableEntity):
         self.estates = []
         self.players = []
         self.initial_balance = initial_balance
-        self.oil_prices = cycle([uniform(0.1, 5.0) for _ in range(10000)])
+        self.oil_prices = cycle([round(uniform(0.1, 5.0), 2) for _ in range(10000)])
         self.oil_price = None
         self.owner = None
         self.started = False
@@ -52,10 +52,10 @@ class Game(ObservableEntity):
         self.oil_price = next(self.oil_prices)
 
         # try to produce equipments/oil on each estate
-        self.estates[0].observable_group.begin()
+        begin_transaction()
         for item in self.estates:
             item.produce()
-        self.estates[0].observable_group.commit()
+        commit_transaction()
 
         print("ROUND")
 
@@ -70,10 +70,7 @@ class Game(ObservableEntity):
             self.owner = player
 
         # @@@
-        self.observable_group.notify(
-            self,
-            dict(type="update", property="players")
-        )
+        self.notify_observers(event=dict(type="update", property="players"))
 
         return player
 

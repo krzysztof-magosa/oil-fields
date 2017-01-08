@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h2>Turn: {{ game.turn }}</h2>
     <h2>$$$: {{ me.balance }}</h2>
     <h2>Oil price: {{ game.oil_price }}</h2>
 
