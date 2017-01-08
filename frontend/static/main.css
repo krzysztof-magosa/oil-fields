@@ -15,6 +15,15 @@ h2 {
   margin: 16px 0 10px;
 }
 
+a {
+  color: #000;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #4CAF50;
+}
+
 fieldset {
   border: none;
   margin: 0;

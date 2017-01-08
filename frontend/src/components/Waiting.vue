@@ -2,14 +2,14 @@
   <div>
     <h2>Waiting for owner to start game...</h2>
     <div>
-      <table v-if="game">
+      <table v-if="players">
         <thead>
           <tr>
             <th>Player</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="player in game.players">
+          <tr v-for="player in players">
             <td>{{ player.name }}</td>
           </tr>
         </tbody>
@@ -24,7 +24,7 @@
 /* eslint-disable */
 export default {
   name: 'waiting',
-  props: ['me', 'game'],
+  props: ['me', 'players', 'game'],
   data() {
     return {
     };

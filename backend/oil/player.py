@@ -16,6 +16,9 @@ class Player(ObservableEntity):
     def estates_by_type(self, type=None):
         return (x for x in self.estates if isinstance(x, type))
 
+    def own(self, estate):
+        estate.owner = self
+
     @property
     def api_data(self):
         return dict(

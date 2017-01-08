@@ -1,72 +1,24 @@
 <template>
   <div>
-    <input type="button" value="Cancel" v-bind:class="{ hidden: view == 'menu' }" v-on:click="view='menu'">
+    <input type="button" value="Cancel" v-bind:class="{ hidden: (view == 'index' || view == 'waiting') }" v-on:click="set_view('index')">
     <div class="tabs-container">
-      <div class="tabs-panel" v-bind:class="{ active: view == 'menu' }">
-        <h2>Turn: {{ game.turn }}</h2>
-        <h2>$$$: {{ me.balance }}</h2>
-
-        <h2>Estate shop</h2>
-        <ul>
-          <li>Drill factory</li>
-          <li>Pump factory</li>
-          <li>Wagon factory</li>
-        </ul>
-
-        <h2>Equipment shop</h2>
-        <ul>
-          <li>Drills</li>
-          <li>Pumps</li>
-          <li>Wagons</li>
-        </ul>
-
-        <h2>Other possibilites</h2>
-        <ul>
-          <li v-on:click="view='estate'">See my estate</li>
-          <li>Next player</li>
-          <li>Sabotage attempt</li>
-          <li>Change price of equipment</li>
-          <li>Get loan</li>
-        </ul>
+      <div class="tabs-panel" v-bind:class="{ active: view == 'waiting' }">
+        <waiting-for-other :me="me" :game="game"></waiting-for-other>
       </div>
-      <div class="tabs-panel" v-bind:class="{ active: view == 'estate' }">
-        <h2>Your oil fields</h2>
-        <table>
-          <thead>
-            <tr>
-              <td>Name</td>
-              <td>D</td>
-              <td>P</td>
-              <td>W</td>
-              <td>O</td>
-          </thead>
-          <tbody>
-            <tr v-for="oil_field in my_oil_fields">
-              <td>{{ oil_field.name }}</td>
-              <td>{{ oil_field.equipments_count.drill }}</td>
-              <td>{{ oil_field.equipments_count.pump }}</td>
-              <td>{{ oil_field.equipments_count.wagon }}</td>
-              <td>{{ oil_field.equipments_count.oil }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h2>Your factories</h2>
-        <table>
-          <thead>
-            <tr>
-              <td>Name</td>
-              <td>E. Price</td>
-              <td>Stock</td>
-          </thead>
-          <tbody>
-            <tr v-for="factory in my_factories">
-              <td>{{ factory.name }}</td>
-              <td>{{ factory.equipment_price }}</td>
-              <td>{{ factory.stock }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="tabs-panel" v-bind:class="{ active: view == 'index' }">
+        <index :me="me" :game="game" @set_view="set_view" @next_player="next_player"></index>
+      </div>
+      <div class="tabs-panel" v-bind:class="{ active: view == 'my-estate' }">
+        <my-estate :me="me" :estates="estates"></my-estate>
+      </div>
+      <div class="tabs-panel" v-bind:class="{ active: view == 'factories-drill' }">
+        <factories :me="me" :estates="estates" @set_view="set_view" type="drillfactory"></factories>
+      </div>
+      <div class="tabs-panel" v-bind:class="{ active: view == 'factories-pump' }">
+        <factories :me="me" :estates="estates" @set_view="set_view" type="pumpfactory"></factories>
+      </div>
+      <div class="tabs-panel" v-bind:class="{ active: view == 'factories-wagon' }">
+        <factories :me="me" :estates="estates" @set_view="set_view" type="wagonfactory"></factories>
       </div>
     </div>
   </div>
@@ -74,15 +26,23 @@
 
 <script>
 /* eslint-disable */
+import Index from './game/Index';
+import MyEstate from './game/MyEstate';
+import Factories from './game/Factories';
+import WaitingForOther from './game/WaitingForOther';
+
 export default {
   name: 'game',
   props: ['me', 'game', 'estates'],
   data() {
     return {
-      view: 'menu'
+      my_view: 'index',
     };
   },
   computed: {
+    view: function() {
+      return this.me.uuid == this.game.turn ? this.my_view : 'waiting';
+    },
     my_estates: function() {
       return this.estates.filter(function(item) {
         return item.owner == this.me.uuid;
@@ -100,7 +60,19 @@ export default {
     }
   },
   methods: {
+    set_view: function(view) {
+      this.my_view = view;
+    },
+    next_player: function() {
+      this.$socket.send("next_player", {});
+    }
   },
+  components: {
+    Index,
+    MyEstate,
+    Factories,
+    WaitingForOther,
+  }
 };
 </script>
 

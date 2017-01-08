@@ -9,7 +9,7 @@
         <games v-bind:games="games"></games>
       </div>
       <div v-if="game && !game.started" class="tabs-panel" v-bind:class="{ active: view == 'waiting' }">
-        <waiting v-bind:me="me" v-bind:game="game"></waiting>
+        <waiting v-bind:me="me" v-bind:game="game" v-bind:players="players"></waiting>
       </div>
       <div v-if="game && game.started" class="tabs-panel" v-bind:class="{ active: view == 'game' }">
         <game v-bind:me="me" v-bind:game="game" v-bind:estates="estates"></game>
@@ -34,6 +34,7 @@ export default {
       game: null,
       games: [],
       estates: [],
+      players: [],
     };
   },
   methods: {
@@ -48,6 +49,9 @@ export default {
         break;
       case 'estates':
         this.estates = data;
+        break;
+      case 'players':
+        this.players = data;
         break;
       case 'game':
         this.game = data;

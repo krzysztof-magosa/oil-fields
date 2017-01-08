@@ -13,7 +13,7 @@ export default {
   name: 'name',
   data() {
     return {
-      name: '',
+      name: 'anonymous',
     };
   },
   methods: {

@@ -2,6 +2,7 @@ from random import uniform, randint
 from oil.estate import Oilfield, PumpFactory, WagonFactory, DrillFactory
 from oil.player import Player
 from oil.observer import ObservableEntity
+from itertools import cycle
 import uuid
 
 
@@ -11,11 +12,14 @@ class Game(ObservableEntity):
         self.uuid = uuid.uuid4()
         self.estates = []
         self.players = []
-        self.initial_balance = initial_balance,
-        self.oil_prices = [uniform(0.1, 5.0) for _ in range(10000)]
+        self.initial_balance = initial_balance
+        self.oil_prices = cycle([uniform(0.1, 5.0) for _ in range(10000)])
+        self.oil_price = None
         self.owner = None
-        self.turn = None
         self.started = False
+        self.turn = None
+        self.turns = None
+        self.sentinel = object()
 
         self.generate()
 
@@ -27,41 +31,51 @@ class Game(ObservableEntity):
             started=self.started,
             owner=str(self.owner.uuid),
             turn=(str(self.turn.uuid) if self.turn else None),
-            players=[x.api_data for x in self.players]
+            player_names=[p.name for p in self.players],
+            oil_price=self.oil_price
         )
+
+    def start(self):
+        self.started = True
+        self.turns = cycle([self.sentinel] + self.players)
+        self.next_player()
+
+    def next_player(self):
+        who = next(self.turns)
+        if who == self.sentinel:
+            self.on_next_round()
+            self.next_player()
+        else:
+            self.turn = who
+
+    def on_next_round(self):
+        self.oil_price = next(self.oil_prices)
+
+        # try to produce equipments/oil on each estate
+        self.estates[0].observable_group.begin()
+        for item in self.estates:
+            item.produce()
+        self.estates[0].observable_group.commit()
+
+        print("ROUND")
 
     def create_player(self, **args):
         player = Player(**args)
         player.game = self
+        player.balance = self.initial_balance
         self.players.append(player)
 
         # First player is owner
         if not self.owner:
             self.owner = player
 
-        # First player starts first
-        if not self.turn:
-            self.turn = player
-
         # @@@
-        self.notify_observers(dict(type="update", property="players"))
+        self.observable_group.notify(
+            self,
+            dict(type="update", property="players")
+        )
 
         return player
-
-    @property
-    def oil_price(self):
-        """
-        Current oil price
-        """
-        return self.oil_prices[-1]
-
-    def round(self):
-        # move oil price to next "year"
-        self.oil_prices.pop()
-
-        # try to produce equipments/oil on each estate
-        for item in self.estates:
-            item.produce()
 
     def get_estates(self, type=None, uuid=None, owner=None):
         for item in self.estates:
@@ -89,7 +103,7 @@ class Game(ObservableEntity):
                 )
             )
 
-        for i in range(10):
+        for i in range(5):
             self.estates.append(
                 PumpFactory(
                     name="Pump Factory {}".format(i+1),
@@ -99,7 +113,7 @@ class Game(ObservableEntity):
                 )
             )
 
-        for i in range(10):
+        for i in range(5):
             self.estates.append(
                 WagonFactory(
                     name="Wagon Factory {}".format(i+1),
@@ -109,7 +123,7 @@ class Game(ObservableEntity):
                 )
             )
 
-        for i in range(10):
+        for i in range(5):
             self.estates.append(
                 DrillFactory(
                     name="Drill Factory {}".format(i+1),

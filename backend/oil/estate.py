@@ -15,9 +15,10 @@ class Estate(ObservableEntity):
     def api_data(self):
         return dict(
             name=self.name,
+            uuid=str(self.uuid),
             type=self.__class__.__name__.lower(),
             price=self.price,
-            owner=(self.owner.uuid if self.owner else None)
+            owner=(str(self.owner.uuid) if self.owner else None)
         )
 
     def produce(self):
@@ -126,13 +127,25 @@ class Factory(Estate):
     def produce(self):
         if self.owner:
             for i in range(self.efficiency):
-                self.stock.append(self.equipment(**self.spec))
+                self.store(self.equipment(**self.spec))
 
     def deliver(self, amount, oilfield):
         for _ in range(min(amount, len(self.stock))):
             item = self.stock.pop()
             oilfield.equipments.append(item)
             oilfield.owner.balance -= self.equipment_price
+
+        self.observable_group.notify(
+            self,
+            dict(action="update", property="stock")
+        )
+
+    def store(self, equipment):
+        self.stock.append(equipment)
+        self.observable_group.notify(
+            self,
+            dict(action="update", property="stock")
+        )
 
 
 class PumpFactory(Factory):

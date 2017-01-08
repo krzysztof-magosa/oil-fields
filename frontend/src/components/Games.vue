@@ -11,10 +11,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(game, index) in filteredGames" v-on:click="join(index)">
+        <tr v-for="(game, index) in games" v-on:click="join(index)">
           <td>{{ game.initial_balance }}</td>
           <td>{{ game.owner.name }}</td>
-          <td>{{ game.player_names }}</td>
+          <td>{{ game.player_names.join(", ") }}</td>
           <td class="ta-right"><input type="button" value="Join"></td>
         </tr>
       </tbody>
@@ -42,20 +42,17 @@ export default {
     };
   },
   computed: {
-    filteredGames: function() {
+/*    filteredGames: function() {
       return this.games.map(
         function(game) {
           return {
             uuid: game.uuid,
             initial_balance: game.initial_balance,
-            owner: game.owner,
-            player_names: game.players.map(function(player) {
-              return player.name
-            }).join(', ')
+            owner: game.owner
           }
         }
       );
-    }
+    } */
   },
   methods: {
     join: function submit(index) {

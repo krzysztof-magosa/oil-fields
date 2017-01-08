@@ -3,11 +3,8 @@ from oil.observer import ObservableEntity
 
 class Equipment(ObservableEntity):
     def __init__(self, efficiency):
-        super().__init__(
-            lambda: dict(
-                efficiency=efficiency
-            )
-        )
+        super().__init__()
+        self.efficiency = efficiency
 
 
 class Pump(Equipment):
