@@ -1,4 +1,5 @@
 from oil.observer import ObservableEntity
+from oil.estate import Estate
 import uuid
 
 
@@ -16,7 +17,11 @@ class Player(ObservableEntity):
     def estates_by_type(self, type=None):
         return (x for x in self.estates if isinstance(x, type))
 
-    def own(self, estate):
+    def buy(self, estate):
+        assert(isinstance(estate, Estate))
+        assert(self.balance > estate.price)
+
+        self.balance -= estate.price
         estate.owner = self
 
     @property

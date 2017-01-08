@@ -2,50 +2,42 @@
 from itertools import groupby
 
 
-during_transaction = False
-message_queue = []  # queue.Queue()
+class Group:
+    def __init__(self):
+        self.in_progress = False
+        self.queue = []
 
+    def assign(self, observable):
+        observable.observer_group = self
 
-def begin_transaction():
-    global during_transaction
-    during_transaction = True
+    def assign_many(self, observables):
+        for observable in observables:
+            self.assign(observable)
 
+    def begin(self):
+        self.in_progress = True
 
-def commit_transaction():
-    global during_transaction
-    during_transaction = False
-    _commit()
+    def commit(self):
+        self.in_progress = False
+        self._commit()
 
+    def _commit(self):
+        messages_grouped = groupby(
+            sorted(
+                self.queue,
+                key=lambda x: hash(x[0])
+            ),
+            key=lambda x: x[0]
+        )
 
-def _commit():
-    global message_queue
-    # grouped by observer.
-    messages_grouped = groupby(
-        sorted(
-            message_queue,
-            key=lambda x: hash(x[0])
-        ),
-        key=lambda x: x[0]
-    )
+        for observer, messages in messages_grouped:
+            observer.notify([(x[1], x[2]) for x in messages])
 
-    for observer, messages in messages_grouped:
-        observer.notify([(x[1], x[2]) for x in messages])
+    def notify(self, observer, observable, event):
+        self.queue.append((observer, observable, event))
 
-
-def notify(observer, observable, event):
-    global message_queue
-    global during_transaction
-
-    message_queue.append((observer, observable, event))
-
-    if not during_transaction:
-        _commit()
-
-
-#
-def observe_elements(observer, elements):
-    for element in elements:
-        observer.observe(element)
+        if not self.in_progress:
+            self._commit()
 
 
 #
@@ -69,10 +61,15 @@ class Observer:
     def observe(self, observable, notify_new=True):
         observable.register_observer(self, notify_new)
 
+    def observe_many(self, elements):
+        for element in elements:
+            self.observe(element)
+
 
 class Observable:
     def __init__(self):
         self.__dict__["observers"] = set()
+        self.__dict__["observer_group"] = Group()
 
     def register_observer(self, observer, notify_new=True):
         self.observers.add(observer)
@@ -82,7 +79,7 @@ class Observable:
 
     def notify_observers(self, event=dict()):
         for observer in self.observers:
-            notify(observer, self, event)
+            self.observer_group.notify(observer, self, event)
 
 
 class ObservableEntity(Observable):

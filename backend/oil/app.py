@@ -1,7 +1,7 @@
 from oil.game import Game
 from oil.player import Player
 from oil.estate import Estate
-from oil.observer import Observer, observe_elements, begin_transaction, commit_transaction, by_observable
+from oil.observer import Observer, Group
 import websockets
 import asyncio
 import json
@@ -16,6 +16,7 @@ class Session(Observer):
         self.uuid = uuid.uuid4()
         self.send_queue = asyncio.Queue()
         self._player = None
+        self.group = None  # observer group
 
     async def loop(self):
         try:
@@ -45,6 +46,9 @@ class Session(Observer):
         return await self.send_queue.get()
 
     async def consumer(self, message):
+        if self.group:
+            self.group.begin()
+
         message_data = json.loads(message)
         action = message_data["action"]
         data = message_data["data"]
@@ -60,24 +64,25 @@ class Session(Observer):
         elif action == "next_player":
             self.game.next_player()
         elif action == "buy_estate":
-            estate = [x for x in self.game.estates if str(x.uuid) == data["uuid"]][0]
-            self.player.own(estate)
-            self.game.next_player()
+            self.buy_estate(data)
+
+        if self.group:
+            self.group.commit()
 
     async def set_name(self, data):
         self.name = data["name"]
-        self.send("games", self.app.games)
+        self.send("games", [x for x in self.app.games if not x.started])
 
     async def create_game(self, data):
-        game = Game(initial_balance=data["initial_balance"])
-        self.app.register_game(game)
-
+        game, group = self.app.create_game(**data)
+        self.group = group
         self.player = game.create_player(name=self.name)
 
     async def join_game(self, data):
         games = list(filter(lambda x: str(x.uuid) == data["uuid"], self.app.games))
         assert(len(games) == 1)
         game = games[0]
+        self.group = self.app.game_group(game)
 
         self.player = game.create_player(name=self.name)
 
@@ -86,6 +91,14 @@ class Session(Observer):
         assert(self.name)
 
         self.player.game.start()
+
+    def buy_estate(self, data):
+        self.player.buy(
+            estate = [x for x in self.game.estates if str(x.uuid) == data["uuid"]][0]
+        )
+
+        self.game.next_player()
+
 
     @property
     def game(self):
@@ -99,18 +112,13 @@ class Session(Observer):
     def player(self, player):
         self._player = player
 
-        begin_transaction()
-        self.observe(self.player.game)
+        self.group.assign(self.game)
+        self.group.assign_many(self.game.estates)
+        self.group.assign_many(self.game.players)
 
-        observe_elements(
-            observer=self,
-            elements=self.game.estates
-        )
-        observe_elements(
-            observer=self,
-            elements=self.game.players
-        )
-        commit_transaction()
+        self.observe(self.game)
+        self.observe_many(self.game.estates)
+        self.observe_many(self.game.players)
 
     def notify(self, messages):
         if any(isinstance(x[0], Player) for x in messages):
@@ -153,20 +161,7 @@ class App(Observer):
     def __init__(self):
         self.sessions = dict()
         self.games = []
-
-    def notify(self, observable, event):
-        if isinstance(observable, Game):
-            pass
-
-#        print(event)
-
-    async def game_broadcast(self, game, action, data):
-        sessions = [x for x in self.sessions.values() if x.player in game.players]
-        for session in sessions:
-            await session.send(action=action, data=data)
-
-    def game_by_uuid(self, uuid):
-        return [x for x in self.games if str(x.uuid) == uuid][0]
+        self.game2group = dict()
 
     def run(self):
         start_server = websockets.serve(self.handler, 'localhost', 8001)
@@ -178,8 +173,19 @@ class App(Observer):
         self.sessions[websocket] = session
         await session.loop()
 
-    def register_game(self, game):
+    def create_game(self, **kwargs):
+        game = Game(**kwargs)
         self.games.append(game)
+
+        group = Group()
+        group.begin()  # @@@
+        group.assign(game)
+        self.game2group[game] = group
+
+        return (game, group)
+
+    def game_group(self, game):
+        return self.game2group[game]
 
     def unregister_session(self, session):
         self.sessions.pop(session.websocket, None)

@@ -13,7 +13,7 @@
           <td>{{ factory.name }}</td>
           <td>{{ factory.price }}</td>
           <td>
-            <input v-if="!factory.owner" type="button" value="Buy" @click="buy(index)">
+            <input v-if="!factory.owner && me.balance > factory.price" type="button" value="Buy" @click="buy(index)">
           </td>
         </tr>
       </tbody>
@@ -25,7 +25,7 @@
 /* eslint-disable */
 export default {
   name: 'factories',
-  props: ['estates', 'type'],
+  props: ['estates', 'type', 'me'],
   data() {
     return {
     };

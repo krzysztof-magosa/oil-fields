@@ -1,7 +1,7 @@
 from random import uniform, randint
 from oil.estate import Oilfield, PumpFactory, WagonFactory, DrillFactory
 from oil.player import Player
-from oil.observer import ObservableEntity, begin_transaction, commit_transaction
+from oil.observer import ObservableEntity
 from itertools import cycle
 import uuid
 
@@ -52,10 +52,8 @@ class Game(ObservableEntity):
         self.oil_price = next(self.oil_prices)
 
         # try to produce equipments/oil on each estate
-        begin_transaction()
         for item in self.estates:
             item.produce()
-        commit_transaction()
 
         print("ROUND")
 
